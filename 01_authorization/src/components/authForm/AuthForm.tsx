@@ -1,11 +1,13 @@
 import React, { FormEvent, useEffect, useState } from "react";
 import styles from "./AuthForm.module.css";
 import logo from "../../assets/authForm/logo.png";
+import { authUser } from "../../api/AuthApi";
+import manIcon from '../../../src/assets/authForm/man.png'
 
 interface IInputStyles {
-  visible?: string;
   emailError?: string;
   passError?: string;
+  authError?: string;
 }
 
 interface IFormErrors {
@@ -13,20 +15,46 @@ interface IFormErrors {
   passwordError?: boolean;
 }
 
+interface IUser {
+  name : {
+    firstname :string,
+    lastname:string
+  },
+  email:string,
+  phone:string
+}
+
 export const AuthForm = () => {
+  const [user, setUser] = useState<IUser>()
   const [formErrors, setFormErrors] = useState<IFormErrors>();
   const [inputStyles, setInputStyles] = useState<IInputStyles>();
   const [buttonVisible, setButtonVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setTimeout(async () => {
+      const result : IUser | undefined = await authUser({ email, password });
+      console.log(result);
+      if (result === undefined) {
+        alert("Неверный логин или пароль");
+        setInputStyles({ ...inputStyles, authError: `${styles.red}` });
+      } else {
+        setUser(result)
+        setInputStyles({authError:`${styles.green}`})
+      }
+      setLoading(false);
+    }, 4000);
+    setLoading(true);
   };
 
   const handleChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value[e.target.value.length + 1] === "a") return;
-    e.target.value = e.target.value.trim();
+    e.target.value = e.target.value
+      .replace(/[а-я]/gi, "")
+      .trim()
+      .toLocaleLowerCase();
     setEmail(e.target.value);
     if (e.target.value.length === 0) setFormErrors({ emailError: true });
     else {
@@ -35,14 +63,14 @@ export const AuthForm = () => {
       e.target.value.includes("@") &&
         e.target.value.includes(".") &&
         !e.target.value.endsWith(".") &&
-        setFormErrors({});
+        setFormErrors({})
     }
   };
 
   const handleChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.target.value = e.target.value.trim();
+    e.target.value = e.target.value.replace(/[а-я]/gi, "").trim();
     setPassword(e.target.value);
-    if (e.target.value.length < 6 && e.target.value.length)
+    if (e.target.value.length < 5 && e.target.value.length)
       setFormErrors({ passwordError: true });
     else {
       setFormErrors({});
@@ -50,17 +78,21 @@ export const AuthForm = () => {
   };
 
   useEffect(() => {
-    if (email.length) {
+    if (email.length || (email.length && password.length)) {
       formErrors?.emailError
-        ? setInputStyles({ emailError: `${styles.red}` })
+        ? setInputStyles({ ...inputStyles, emailError: `${styles.red}` })
         : !password.length
         ? setInputStyles({
+            ...inputStyles,
             emailError: `${styles.green}`,
-            visible: `${styles.inputVisible}`,
           })
         : formErrors?.passwordError
         ? setInputStyles({ ...inputStyles, passError: `${styles.red}` })
-        : setInputStyles({ ...inputStyles, passError: `${styles.green}` });
+        : setInputStyles({
+            ...inputStyles,
+            passError: `${styles.green}`,
+            emailError: `${styles.green}`,
+          });
     }
     if (
       email.length &&
@@ -69,16 +101,32 @@ export const AuthForm = () => {
       !formErrors?.passwordError
     ) {
       setButtonVisible(true);
-    } else setButtonVisible(false);
-    console.log(formErrors?.passwordError);
+    }
   }, [formErrors, email.length, password.length]);
 
   return (
-    <div className={styles.wrapper}>
+    <div
+      className={`${styles.wrapper} ${inputStyles && inputStyles.authError}`}
+    >
+      <div
+        className={`${styles.loader} ${loading && styles.loaderVisible}`}
+      ><div className={styles.loaderSpinner} /></div>
       <div className={styles.logoWrapper}>
         <img src={logo} className={styles.image} />
       </div>
       <div className={styles.divider} />
+        {user ? (
+          <div className={styles.profileWrapper}>
+            <div className={styles.avatarWrapper}>
+              <img className={styles.image} src={manIcon}/>
+            </div>
+            <div className={styles.profileInfo}>
+              <span>{user.name.firstname} {user.name.lastname}</span>
+              <span>✆ {user.phone}</span>
+              <span>✉ {user.email}</span>
+            </div>
+          </div>
+        ) : (
       <div className={styles.formWrapper}>
         <div className={styles.formTitle}>
           <h2>Login</h2>
@@ -100,9 +148,8 @@ export const AuthForm = () => {
             <input
               onChange={(e) => handleChangePassword(e)}
               placeholder="ꗃ Password"
-              className={`${styles.input} ${
-                inputStyles && inputStyles.visible
-              } ${inputStyles && inputStyles.passError}`}
+              className={`${styles.input}
+              ${inputStyles && inputStyles.passError}`}
               type="password"
             />
           </div>
@@ -110,13 +157,14 @@ export const AuthForm = () => {
           <button
             type="submit"
             className={`${styles.formButton} ${
-              buttonVisible && styles.inputVisible
+              buttonVisible && styles.buttonVisible
             }`}
           >
             Войти
           </button>
         </form>
       </div>
+        )}
     </div>
   );
 };

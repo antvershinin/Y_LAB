@@ -16,11 +16,8 @@ interface IFormErrors {
 }
 
 interface IUser {
-  name : {
-    firstname :string,
-    lastname:string
-  },
-  email:string,
+  firstName :string,
+  lastName:string
   phone:string
 }
 
@@ -35,19 +32,17 @@ export const AuthForm = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setTimeout(async () => {
-      const result : IUser | undefined = await authUser({ email, password });
-      console.log(result);
+    setLoading(true);
+    const result : IUser | undefined = await authUser({ email, password });
       if (result === undefined) {
         alert("Неверный логин или пароль");
         setInputStyles({ ...inputStyles, authError: `${styles.red}` });
+        setLoading(false);
       } else {
         setUser(result)
         setInputStyles({authError:`${styles.green}`})
+        setLoading(false);
       }
-      setLoading(false);
-    }, 4000);
-    setLoading(true);
   };
 
   const handleChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,9 +116,8 @@ export const AuthForm = () => {
               <img className={styles.image} src={manIcon}/>
             </div>
             <div className={styles.profileInfo}>
-              <span>👥{user.name.firstname} {user.name.lastname}</span>
+              <span>👥{user.firstName} {user.lastName}</span>
               <span>✆ {user.phone}</span>
-              <span>✉ {user.email}</span>
             </div>
           </div>
         ) : (

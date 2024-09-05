@@ -34,15 +34,15 @@ export const AuthForm = () => {
     e.preventDefault();
     setLoading(true);
     const result : IUser | undefined = await authUser({ email, password });
-      if (result === undefined) {
-        alert("Неверный логин или пароль");
-        setInputStyles({ ...inputStyles, authError: `${styles.red}` });
-        setLoading(false);
-      } else {
-        setUser(result)
-        setInputStyles({authError:`${styles.green}`})
-        setLoading(false);
-      }
+    if (result === undefined) {
+      alert("Неверный логин или пароль");
+      setInputStyles({ ...inputStyles, authError: `${styles.red}` });
+      setLoading(false);
+    } else {
+      setUser(result)
+      setInputStyles({authError:`${styles.green}`})
+      setLoading(false);
+    }
   };
 
   const handleChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {

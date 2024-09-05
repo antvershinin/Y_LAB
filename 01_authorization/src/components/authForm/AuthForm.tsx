@@ -121,7 +121,7 @@ export const AuthForm = () => {
               <img className={styles.image} src={manIcon}/>
             </div>
             <div className={styles.profileInfo}>
-              <span>{user.name.firstname} {user.name.lastname}</span>
+              <span>👥{user.name.firstname} {user.name.lastname}</span>
               <span>✆ {user.phone}</span>
               <span>✉ {user.email}</span>
             </div>
@@ -129,7 +129,7 @@ export const AuthForm = () => {
         ) : (
       <div className={styles.formWrapper}>
         <div className={styles.formTitle}>
-          <h2>Login</h2>
+          <h2>Авторизация</h2>
         </div>
         <form className={styles.formContent} onSubmit={(e) => handleSubmit(e)}>
           <div>
